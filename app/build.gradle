@@ -4,10 +4,13 @@ plugins {
     id 'kotlin-kapt'
     id 'androidx.navigation.safeargs.kotlin'
 }
-
 android {
     namespace 'com.example.todoapp160420029'
     compileSdk 33
+
+    dataBinding {
+        enabled true
+    }
 
     defaultConfig {
         applicationId "com.example.todoapp160420029"

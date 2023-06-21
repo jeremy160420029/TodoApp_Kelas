@@ -5,15 +5,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.Toast
+import android.widget.*
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
+import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp160420029.R
-import com.example.todoapp160420029.model.Todo
 import com.example.todoapp160420029.viewmodel.DetailTodoViewModel
 
 // TODO: Rename parameter arguments, choose names that match
@@ -23,10 +20,10 @@ private const val ARG_PARAM2 = "param2"
 
 /**
  * A simple [Fragment] subclass.
- * Use the [CreateTodoFragment.newInstance] factory method to
+ * Use the [EditTodoFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class CreateTodoFragment : Fragment() {
+class EditTodoFragment : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -50,23 +47,49 @@ class CreateTodoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel =
-            ViewModelProvider(this).get(DetailTodoViewModel::class.java)
+        viewModel = ViewModelProvider(this).get(DetailTodoViewModel::class.java)
 
-        val btnAdd = view.findViewById<Button>(R.id.btnAdd)
+        var txtJudulTodo = view.findViewById<TextView>(R.id.txtJudulTodo)
+        var btnAdd = view.findViewById<Button>(R.id.btnAdd)
+        txtJudulTodo.text = "Edit Todo"
+        btnAdd.text = "Save Changes"
+
+        val uuid = EditTodoFragmentArgs.fromBundle(requireArguments()).uuid
+        viewModel.fetch(uuid)
+
+
+        var txtTitle = view.findViewById<TextView>(R.id.txtTitle)
+        var txtNotes = view.findViewById<TextView>(R.id.txtNotes)
+        var radioLow = view.findViewById<RadioButton>(R.id.radioLow)
+        var radioMedium = view.findViewById<RadioButton>(R.id.radioMedium)
+        var radioHigh = view.findViewById<RadioButton>(R.id.radioHigh)
+
+        val radioGroupPriority = view.findViewById<RadioGroup>(R.id.radioGroupPriority)
         btnAdd.setOnClickListener {
-            val txtTitle = view.findViewById<EditText>(R.id.txtTitle)
-            val txtNotes = view.findViewById<EditText>(R.id.txtNotes)
-
-            val radioGroup = view.findViewById<RadioGroup>(R.id.radioGroupPriority)
-            val radioButton = view.findViewById<RadioButton>(radioGroup.checkedRadioButtonId)
-            var todo = Todo(txtTitle.text.toString(), txtNotes.text.toString(), radioButton.tag.toString().toInt(), 0)
-//            val list = listOf(todo)
-            viewModel.addTodo(todo)
-            Toast.makeText(view.context, "Data added", Toast.LENGTH_LONG).show()
+            val radio =
+                view.findViewById<RadioButton>(radioGroupPriority.checkedRadioButtonId)
+            viewModel.update(txtTitle.text.toString(), txtNotes.text.toString(),
+                radio.tag.toString().toInt(), uuid)
+            Toast.makeText(view.context, "Todo updated", Toast.LENGTH_SHORT).show()
             Navigation.findNavController(it).popBackStack()
         }
+
+        observeViewModel(txtTitle, txtNotes, radioLow, radioMedium, radioHigh)
     }
+
+    fun observeViewModel(txtTitle: TextView, txtNotes: TextView, radioLow: RadioButton, radioMedium: RadioButton, radioHigh: RadioButton) {
+        viewModel.todoLD.observe(viewLifecycleOwner, Observer {
+            txtTitle.setText(it.title)
+            txtNotes.setText(it.notes)
+
+            when (it.priority) {
+                1 -> radioLow.isChecked = true
+                2 -> radioMedium.isChecked = true
+                else -> radioHigh.isChecked = true
+            }
+        })
+    }
+
 
     companion object {
         /**
@@ -75,12 +98,12 @@ class CreateTodoFragment : Fragment() {
          *
          * @param param1 Parameter 1.
          * @param param2 Parameter 2.
-         * @return A new instance of fragment CreateTodoFragment.
+         * @return A new instance of fragment EditTodoFragment.
          */
         // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance(param1: String, param2: String) =
-            CreateTodoFragment().apply {
+            EditTodoFragment().apply {
                 arguments = Bundle().apply {
                     putString(ARG_PARAM1, param1)
                     putString(ARG_PARAM2, param2)
